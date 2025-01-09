@@ -2,9 +2,9 @@ import requests
 import google.generativeai as genai
 
 # GitHub API authentication (use your personal access token)
-GITHUB_TOKEN = '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'  # Replace with your actual token
-REPO_OWNER = 'arindhimar'  # Owner of the repo (can be your GitHub username or organization)
-REPO_NAME = 'CommitBridge'  # Name of the repository you want to track commits for
+GITHUB_TOKEN = ''  # Replace with your actual token
+REPO_OWNER = ''  # Owner of the repo (can be your GitHub username or organization)
+REPO_NAME = ''  # Name of the repository you want to track commits for
 
 # Define the GitHub API URL for commits
 api_url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/commits'

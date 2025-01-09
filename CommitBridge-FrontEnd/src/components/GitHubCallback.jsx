@@ -1,37 +1,27 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-export default function GitHubCallback() {
+const GitHubCallback = () => {
   const [error, setError] = useState(null);
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchData = async () => {
-      const searchParams = new URLSearchParams(location.search);
-      const code = searchParams.get('code');
+      const urlParams = new URLSearchParams(location.search);
+      const code = urlParams.get('code');
 
       if (code) {
         try {
-          // Exchange the code for an access token
-          const tokenResponse = await axios.post('/api/auth/github', { code });
-          const { access_token } = tokenResponse.data;
+          const response = await axios.post('http://127.0.0.1:5000/api/auth/oauth/github', { code });
+          console.log('GitHub auth successful:', response.data);
 
-          // Fetch user data
-          const userResponse = await axios.get('https://api.github.com/user', {
-            headers: { Authorization: `Bearer ${access_token}` },
-          });
+          // Save token and user info to local storage
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
 
-          console.log('GitHub User Info:', userResponse.data);
-
-          // Send user data to your backend
-          await axios.post('/api/auth/register', {
-            ...userResponse.data,
-            provider: 'github',
-          });
-
-          // Redirect to the dashboard or home page
+          // Redirect to dashboard
           navigate('/dashboard');
         } catch (err) {
           setError('Failed to authenticate with GitHub');
@@ -50,5 +40,7 @@ export default function GitHubCallback() {
   }
 
   return <div>Authenticating with GitHub...</div>;
-}
+};
+
+export default GitHubCallback;
 
