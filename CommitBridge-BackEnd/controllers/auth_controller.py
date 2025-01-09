@@ -36,62 +36,52 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
+### 1. Normal Email/Password Registration
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'Missing required fields'}), 400
-
-    if User.get_by_email(data['email']):
-        return jsonify({'error': 'Email already registered'}), 400
-
+    print("Registering user")
     try:
+        # Parse JSON data from the request
+        data = request.get_json()
+
+        # Validate required fields
+        if not data or not data.get('email') or not data.get('password') or not data.get('username'):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Check if email is already registered
+        if User.get_by_email(data['email']):
+            print("Email already registered")
+            return jsonify({'error': 'Email already registered'}), 400
+
+        # Use provided username or fallback to part of the email before '@'
         username = data.get('username', data['email'].split('@')[0])
+
+        # Create a new user
         user = User.create_user(
             username=username,
             email=data['email'],
             password=data['password']
         )
-        
+
+        # Generate JWT token with 1-day expiration
         token = jwt.encode({
             'user_id': user.id,
             'exp': datetime.utcnow() + timedelta(days=1)
-        }, current_app.config['SECRET_KEY'])
+        }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
+        # Return success response with user details and token
         return jsonify({
             'message': 'Registration successful',
             'token': token,
             'user': user.to_dict()
         }), 201
+
     except Exception as e:
+        print
         return jsonify({'error': str(e)}), 400
-
-@auth_bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
     
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'Missing email or password'}), 400
-
-    user = User.get_by_email(data['email'])
     
-    if user and user.check_password(data['password']):
-        token = jwt.encode({
-            'user_id': user.id,
-            'exp': datetime.utcnow() + timedelta(days=1)
-        }, current_app.config['SECRET_KEY'])
-        
-        user.last_login = datetime.utcnow()
-        user.update()
-
-        return jsonify({
-            'token': token,
-            'user': user.to_dict()
-        }), 200
-    
-    return jsonify({'error': 'Invalid credentials'}), 401
-
+### 2. Google OAuth Registration
 @auth_bp.route('/oauth/google', methods=['POST'])
 def google_oauth():
     data = request.get_json()
@@ -101,7 +91,6 @@ def google_oauth():
     try:
         user = User.get_by_email(data['email'])
         if not user:
-            # Create a new user if they don't exist
             username = data.get('name', data['email'].split('@')[0])
             user = User.create_user(
                 username=username,
@@ -109,7 +98,35 @@ def google_oauth():
                 picture=data.get('picture')
             )
 
-        # Generate JWT token
+        token = jwt.encode({
+            'user_id': user.id,
+            'exp': datetime.utcnow() + timedelta(days=1)
+        }, current_app.config['SECRET_KEY'])
+
+        return jsonify({
+            'token': token,
+            'user': user.to_dict()
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+### 3. GitHub OAuth Registration
+@auth_bp.route('/oauth/github', methods=['POST'])
+def github_oauth():
+    data = request.get_json()
+    if not data or not data.get('email'):
+        return jsonify({'error': 'Invalid data provided'}), 400
+
+    try:
+        user = User.get_by_email(data['email'])
+        if not user:
+            username = data.get('name', data['email'].split('@')[0])
+            user = User.create_user(
+                username=username,
+                email=data['email'],
+                picture=data.get('avatar_url')  # GitHub's picture field
+            )
+
         token = jwt.encode({
             'user_id': user.id,
             'exp': datetime.utcnow() + timedelta(days=1)

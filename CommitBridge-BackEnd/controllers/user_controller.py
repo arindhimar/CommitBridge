@@ -1,55 +1,40 @@
-from flask import Blueprint, request, jsonify
-from models.user import User
-from .auth_controller import token_required
+from flask import request, jsonify, Blueprint
+from models.UserModel import UserModel
 
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint('user_bp', __name__)
+user_model = UserModel()
 
 @user_bp.route('/users', methods=['GET'])
-@token_required
-def get_all_users(current_user):
-    if not current_user:
-        return jsonify({'error': 'Authentication required'}), 401
-    
-    users = User.get_all()
-    return jsonify([user.to_dict() for user in users]), 200
+def get_all_users():
+    users = user_model.fetch_all_users()
+    return jsonify(users)
 
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
-@token_required
-def get_user(current_user, user_id):
-    if not current_user:
-        return jsonify({'error': 'Authentication required'}), 401
-    
-    user = User.get_by_id(user_id)
+def get_user(user_id):
+    user = user_model.fetch_user_by_id(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
-    
-    return jsonify(user.to_dict()), 200
+    return jsonify(user)
+
+@user_bp.route('/users', methods=['POST'])
+def create_user():
+    data = request.get_json() or request.form
+    if not all(key in data for key in ('name', 'email', 'password')):
+        return jsonify({'error': 'Missing required fields'}), 400
+    user_model.create_user(data['name'], data['email'], data['password'], data.get('timezone', 'UTC'))
+    return jsonify({'message': 'User created successfully'}), 201
 
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
-@token_required
-def update_user(current_user, user_id):
-    if not current_user or current_user.id != user_id:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    data = request.get_json()
-    try:
-        current_user.update(**data)
-        return jsonify({
-            'message': 'User updated successfully',
-            'user': current_user.to_dict()
-        }), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+def update_user(user_id):
+    data = request.get_json() or request.form
+    if not user_model.fetch_user_by_id(user_id):
+        return jsonify({'error': 'User not found'}), 404
+    user_model.update_user(user_id, data.get('name'), data.get('email'), data.get('password'), data.get('timezone'))
+    return jsonify({'message': 'User updated successfully'})
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
-@token_required
-def delete_user(current_user, user_id):
-    if not current_user or current_user.id != user_id:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    try:
-        current_user.delete()
-        return jsonify({'message': 'User deleted successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
+def delete_user(user_id):
+    if not user_model.fetch_user_by_id(user_id):
+        return jsonify({'error': 'User not found'}), 404
+    user_model.delete_user(user_id)
+    return jsonify({'message': 'User deleted successfully'})

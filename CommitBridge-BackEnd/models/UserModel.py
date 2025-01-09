@@ -7,10 +7,10 @@ class UserModel:
 
     def get_db_connection(self):
         return mysql.connector.connect(
-            host=host,
-            database=database,
-            user=user,
-            password=password
+            host="localhost",
+            database="commitbridge",
+            user="root",
+            password="root"
         )
 
     def fetch_all_users(self):
