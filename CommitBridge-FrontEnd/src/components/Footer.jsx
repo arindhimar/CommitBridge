@@ -1,64 +1,90 @@
-import { Link } from 'react-router-dom'
-import { Github, Twitter, Linkedin, Coffee, Heart } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Github, Twitter, Linkedin, Instagram, Mail, Globe, Coffee, Heart } from 'lucide-react'
+import { motion } from 'framer-motion'
+
+const SocialIcon = ({ href, icon: Icon, label, hoverEffect }) => {
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="text-foreground hover:text-primary transition-colors"
+      whileHover={hoverEffect}
+      whileTap={{ scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <Icon className="h-5 w-5" />
+    </motion.a>
+  )
+}
+
+const IconWrapper = ({ children }) => {
+  return (
+    <motion.div
+      className="flex items-center justify-center space-x-8"
+      initial="rest"
+      animate="rest"
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 export function Footer() {
   return (
     <footer className="bg-background border-t">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-4">
-            <Link to="/" className="text-2xl font-bold text-primary">
-              CommitBridge
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              Turning your commits into cool social posts! 🚀
-            </p>
-            <div className="flex space-x-4">
-              <a href="https://github.com/commitbridge" target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-primary transition-colors">
-                <Github className="h-5 w-5" />
-              </a>
-              <a href="https://twitter.com/commitbridge" target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="https://linkedin.com/company/commitbridge" target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-primary transition-colors">
-                <Linkedin className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-foreground">Quick Links</h3>
-            <nav className="space-y-2">
-              <Link to="/about" className="block text-muted-foreground hover:text-primary transition-colors">About This Project</Link>
-              <Link to="/features" className="block text-muted-foreground hover:text-primary transition-colors">Cool Features</Link>
-              <Link to="/contribute" className="block text-muted-foreground hover:text-primary transition-colors">Contribute</Link>
-              <Link to="/showcase" className="block text-muted-foreground hover:text-primary transition-colors">User Showcase</Link>
-            </nav>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Stay in the Loop!</h3>
-            <p className="text-sm text-muted-foreground">Get notified about new features and updates.</p>
-            <form className="flex space-x-2">
-              <Input 
-                type="email" 
-                placeholder="Your email" 
-                className="bg-background text-foreground border-primary"
-              />
-              <Button type="submit" variant="outline">Join</Button>
-            </form>
-          </div>
-        </div>
-        <div className="mt-8 pt-8 border-t border-muted text-center text-sm text-muted-foreground">
-          <p className="flex items-center justify-center gap-2">
+        <div className="text-center text-sm text-muted-foreground">
+          <p className="flex items-center justify-center gap-2 mb-4">
             Made with <Heart className="h-4 w-4 text-red-500" /> and <Coffee className="h-4 w-4 text-amber-700" /> by the CommitBridge team
           </p>
-          <p className="mt-2">
+          <motion.p
+            className="mb-6"
+            animate={{ rotate: [-2, 2, -2] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          >
             © {new Date().getFullYear()} CommitBridge. Open source and proud! 🎉
-          </p>
+          </motion.p>
         </div>
+        <IconWrapper>
+          <SocialIcon
+            href="https://github.com/arindhimar/commitbridge"
+            icon={Github}
+            label="GitHub"
+            hoverEffect={{ scale: 1.2, rotate: 10 }}
+          />
+          <SocialIcon
+            href="https://twitter.com/arin_dhimar"
+            icon={Twitter}
+            label="Twitter"
+            hoverEffect={{ y: -10, scale: 1.2 }}
+          />
+          <SocialIcon
+            href="https://www.instagram.com/arin_dhimar_"
+            icon={Instagram}
+            label="Instagram"
+            hoverEffect={{ scale: 1.3, rotate: -15 }}
+          />
+          <SocialIcon
+            href="mailto:arindhimar111.com"
+            icon={Mail}
+            label="Email"
+            hoverEffect={{ x: -10, scale: 1.1 }}
+          />
+          <SocialIcon
+            href="https://linkedin.com/company/commitbridge"
+            icon={Linkedin}
+            label="LinkedIn"
+            hoverEffect={{ x: 10, scale: 1.1 }}
+          />
+          <SocialIcon
+            href="https://commitbridge.com"
+            icon={Globe}
+            label="Portfolio"
+            hoverEffect={{ rotate: 360, scale: 1.2 }}
+          />
+        </IconWrapper>
       </div>
     </footer>
   )
 }
-
