@@ -6,6 +6,8 @@ from controllers.user_controller import user_bp
 from controllers.linkedin_integration_controller import linkedin_integration_bp
 from controllers.x_integration_controller import x_integration_bp
 from config import Config
+from flask_mail import Mail
+
 
 def create_app():
     app = Flask(__name__)
@@ -16,6 +18,10 @@ def create_app():
                                  "supports_credentials": True, "methods": ["GET", "POST", "OPTIONS"]}})
     
     db.init_app(app)
+    mail=Mail()
+
+    mail.init_app(app)
+
     
     # Register blueprints for authentication, users, LinkedIn, and X (Twitter)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -27,6 +33,7 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
+    
     with app.app_context():
         db.create_all()
     app.run(debug=True)

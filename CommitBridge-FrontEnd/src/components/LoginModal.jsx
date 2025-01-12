@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useGoogleLogin } from '@react-oauth/google'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 export default function LoginModal({ isOpen, onClose }) {
   const [email, setEmail] = useState('')
@@ -50,7 +50,6 @@ export default function LoginModal({ isOpen, onClose }) {
   };
 
   const sendUserDataToBackend = async (userData, method) => {
-    console.log(userData)
     let endpoint;
     switch (method) {
       case 'google':
@@ -78,8 +77,14 @@ export default function LoginModal({ isOpen, onClose }) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
       onClose();
-      // Redirect to dashboard
-      navigate('/dashboard');
+      
+      // Check if password needs to be set (for Google login)
+      if (response.data.requires_password_set) {
+        navigate('/set-password');
+      } else {
+        // Redirect to dashboard
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(`Failed to authenticate using ${method}`);
       console.error(err);
@@ -146,6 +151,9 @@ export default function LoginModal({ isOpen, onClose }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline mt-1 block">
+                Forgot password?
+              </Link>
             </div>
             <Button type="submit" className="w-full mb-4">
               {isRegistering ? 'Register' : 'Login'} with Email
